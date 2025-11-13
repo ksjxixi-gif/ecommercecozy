@@ -1,0 +1,146 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String
+  password         String
+  phone            String?
+
+  // User Preferences for Recommendations
+  stylePreference  String?  // "modern", "classic", "minimalist", "rustic"
+  colorPreferences String[] // ["neutral", "bold", "earthy", "dark"]
+  roomPreferences  String[] // ["living", "bedroom", "dining", "office"]
+  budgetRange      String?  // "budget" (<500), "mid" (500-1500), "luxury" (>1500)
+
+  language         String   @default("en") // "en" or "ar"
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  cart             Cart?
+  orders           Order[]
+
+  @@index([email])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+
+  // Bilingual Fields
+  nameEn          String
+  nameAr          String
+  descriptionEn   String   @db.Text
+  descriptionAr   String   @db.Text
+
+  // Pricing
+  price           Float
+  salePrice       Float?
+
+  // Categorization for Recommendations
+  style           String   // "modern", "classic", "minimalist", "rustic"
+  colors          String[] // ["neutral", "bold", "earthy", "dark"]
+  room            String   // "living", "bedroom", "dining", "office"
+  category        String   // "sofa", "chair", "table", "bed", "storage"
+
+  // Media
+  images          String[] // Array of image URLs
+  model3DUrl      String?  // GLB file URL for 3D viewer
+
+  // Specifications
+  dimensions      Json     // {width: 200, height: 100, depth: 80, unit: "cm"}
+  materials       String[] // ["wood", "fabric", "metal", "leather"]
+  weight          Float?   // in kg
+
+  // Inventory
+  inStock         Boolean  @default(true)
+  stockQuantity   Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+
+  @@index([style])
+  @@index([room])
+  @@index([price])
+  @@index([category])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items     CartItem[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int     @default(1)
+
+  @@index([cartId])
+  @@index([productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+
+  orderNumber     String      @unique
+  status          String      @default("pending") // "pending", "processing", "shipped", "delivered", "cancelled"
+
+  items           OrderItem[]
+
+  subtotal        Float
+  shipping        Float       @default(0)
+  tax             Float       @default(0)
+  total           Float
+
+  shippingAddress Json        // {name, phone, address, city, country, zipCode}
+  paymentMethod   String      // "card", "paypal", "cod" (cash on delivery)
+  paymentStatus   String      @default("pending") // "pending", "paid", "failed"
+
+  notes           String?     @db.Text
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity  Int
+  price     Float   // Price at time of order
+
+  @@index([orderId])
+}
