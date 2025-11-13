@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
 
 export default function HomePage({ params: { lang } }: { params: { lang: string } }) {
@@ -9,13 +8,10 @@ export default function HomePage({ params: { lang } }: { params: { lang: string 
     <div>
       {/* Hero Section with Luxury Background */}
       <div className="relative h-screen">
-        <Image
+        <img
           src="/images/hero-background.jpg"
           alt="Cozy Corner Living Room"
-          fill
-          priority
-          className="object-cover"
-          quality={90}
+          className="object-cover w-full h-full"
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
@@ -173,11 +169,10 @@ export default function HomePage({ params: { lang } }: { params: { lang: string 
                 whileHover={{ y: -10 }}
                 className="group relative h-96 rounded-3xl overflow-hidden cursor-pointer shadow-lg"
               >
-                <Image
+                <img
                   src={collection.image}
                   alt={`${collection.nameEn} Image`}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/40" />
                 <div className="absolute bottom-0 left-0 p-8 text-white">
